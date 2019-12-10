@@ -24,7 +24,6 @@ class ServerProtocol(LineOnlyReceiver):
                 if temp_login != "" and self.is_login_free(temp_login):
                     self.login = temp_login
                     self.sendLine(f"Welcome, {self.login}!".encode())
-                    self.factory.users.append(temp_login)
                     self.send_history()
                 else:
                     self.sendLine(f"Login '{temp_login}' is invalid or taken. Try another one.".encode())
@@ -33,14 +32,13 @@ class ServerProtocol(LineOnlyReceiver):
 
     def connectionLost(self, reason=connectionDone):
         self.factory.clients.remove(self)
-        self.factory.users.remove(self.login)
 
     def connectionMade(self):
         self.factory.clients.append(self)
 
     def is_login_free(self, login):
-        for user in self.factory.users:
-            if login == user:
+        for client in self.factory.clients:
+            if login == client.login:
                 return False
 
         return True
@@ -53,12 +51,10 @@ class ServerProtocol(LineOnlyReceiver):
 class Server(ServerFactory):
     protocol = ServerProtocol
     clients: list
-    users: list
     history: list
 
     def startFactory(self):
         self.clients = []
-        self.users = []
         self.history = []
         print("Server started")
 
