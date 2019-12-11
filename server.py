@@ -8,7 +8,10 @@ class ServerProtocol(LineOnlyReceiver):
     login: str = None
 
     def lineReceived(self, line: bytes):
-        content = line.decode()
+        content = line.decode().strip()
+
+        if content == "":
+            return
 
         if self.login is not None:
             content = f"Message from {self.login}: {content}"
@@ -19,7 +22,7 @@ class ServerProtocol(LineOnlyReceiver):
                     user.sendLine(content.encode())
         else:
             if content.startswith("login:"):
-                temp_login = content.replace("login:", "")
+                temp_login = content.replace("login:", "").lstrip()
 
                 if temp_login != "" and self.is_login_free(temp_login):
                     self.login = temp_login
